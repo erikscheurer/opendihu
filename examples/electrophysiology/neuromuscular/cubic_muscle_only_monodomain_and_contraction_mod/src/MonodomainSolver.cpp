@@ -72,13 +72,10 @@ int main(int argc, char *argv[])
   // Hierarchical coupling to use small time steps for spindles, golgi,
   // motoneurons, monodomain, and bidomain coupled to the contraction solver
   // with large time steps
-  Control::Coupling<
+  Control::PreciceAdapterVolumeCoupling<
+  // Control::Coupling<
     // Term1    
-    MonodomainSolver,
-    // Term2
-    MuscleContractionSolver<
-        Mesh::StructuredDeformableOfDimension<3>
-    >
+    MonodomainSolver
       
   > problem(settings);
   

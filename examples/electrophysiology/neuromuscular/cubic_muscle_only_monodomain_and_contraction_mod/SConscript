@@ -8,4 +8,5 @@
 Import('env')     # import Environment object from calling SConstruct
 
 # create the main executable
-env.Program(target = 'muscle_neuromuscular', source = "src/muscle_neuromuscular.cpp")
+env.Program(target = 'monodomainSolver', source = "src/MonodomainSolver.cpp")
+env.Program(target = 'muscleContractionSolver', source = "src/MuscleContractionSolver.cpp")

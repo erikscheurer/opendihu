@@ -43,7 +43,7 @@ linear_absolute_tolerance = 1e-10          # absolute tolerance of the residual 
 
 # timing parameters
 # -----------------
-end_time = 200.0                   # [ms] end time of the simulation
+end_time = 20.0                   # [ms] end time of the simulation
 stimulation_frequency = 100*1e-3    # [ms^-1] sampling frequency of stimuli in firing_times_file, in stimulations per ms, number before 1e-3 factor is in Hertz. This is not used here.
 dt_neuron_system            = 1e-3  # [ms]
 # dt_muscle_spindles          = 1e-3  # [ms]
@@ -59,13 +59,13 @@ output_timestep = 1e0               # [ms] timestep for output files
 activation_start_time = 0           # [ms] time when to start checking for stimulation
 output_timestep_fibers = 2   # [ms] timestep for multidomain output files
 output_timestep_elasticity = 1    # [ms] timestep for elasticity output files
-output_timestep_emg = 200    # [ms] timestep for emg output files
+output_timestep_emg = 20    # [ms] timestep for emg output files
 
 # output_timestep_golgi_tendon_organs = 20
 # output_timestep_spindles = 1         # [ms] timestep for output of files for all sensor organs and neurons
 output_timestep_motoneuron = 1    # [ms] timestep for output of files for motoneuron
 # output_timestep_interneurons = 1  # [ms] timestep for output of files for intermotoneuron
-output_timestep_surface = 200
+output_timestep_surface = 20
 
 
 
