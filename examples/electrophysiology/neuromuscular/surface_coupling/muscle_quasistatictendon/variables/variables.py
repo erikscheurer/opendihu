@@ -3,12 +3,12 @@ scenario_name = ""
 
 # timing parameters
 # -----------------
-end_time = 20.0                   # [ms] end time of the simulation
+end_time = 0.05                   # [ms] end time of the simulation
 
 dt_0D = 0.5e-3                        # [ms] timestep width of ODEs
 dt_1D = 1e-3                      # [ms] timestep width of diffusion
 dt_splitting_0D1D = 1e-3            # [ms] overall timestep width of strang splitting
-dt_elasticity = 0.1             # [ms] time step width of elasticity solver
+dt_elasticity = 0.01            # [ms] time step width of elasticity solver
 
 stimulation_frequency = 100*1e-3    # [ms^-1] sampling frequency of stimuli in firing_times_file, in stimulations per ms, number before 1e-3 factor is in Hertz. This is not used here.
 activation_start_time = 0           # [ms] time when to start checking for stimulation
@@ -74,13 +74,6 @@ n_fibers_y = 4
 tendon_extent = [3.0, 3.0, 2.0] # [cm, cm, cm]
 tendon_offset = [0.0, 0.0, muscle1_extent[2]]
 n_elements_tendon = [2, 2, 4] 
-
-muscle2_extent = [3.0, 3.0, 14.8] # [cm, cm, cm]
-muscle2_offset = [0.0, 0.0, muscle1_extent[2]+tendon_extent[2]]
-n_elements_muscle2 = [2, 2, 20] # linear elements. each qudaratic element uses the combined nodes of 8 linear elements
-
-
-
 
 # random
 # ------------
@@ -174,28 +167,6 @@ def get_from_obj(data, path):
 
 
 def muscle1_postprocess(data):
-   t = get_from_obj(data, [0, 'currentTime'])
-   z_data = get_from_obj(data, [0, 'data', ('name','geometry'), 'components', 2, 'values'])
-   [mx, my, mz] = get_from_obj(data, [0, 'nElementsLocal'])
-   basis_order = get_from_obj(data, [0, 'basisOrder'])
-   basis_function = get_from_obj(data, [0, 'basisFunction'])
-   assert(basis_function == 'Lagrange')
-   assert(basis_order == 2)
-   nx = 2*mx + 1
-   ny = 2*my + 1
-   nz = 2*mz + 1
-   # compute average z-value of end of muscle
-   z_value = 0
-   for j in range(ny):
-       for i in range(nx):
-          z_value += z_data[(nz-1)*nx*ny + j*nx + i]
-       z_value /= ny*nx
-
-   global muscle1_tendon_z
-   muscle1_tendon_z = z_value
-   print("Muscle2: t: {:6.2f}, avg. change of muscle length: {:+2.2f}".format(t, muscle1_tendon_z - muscle1_extent[2]))
-
-def muscle2_postprocess(data):
     t = get_from_obj(data, [0, 'currentTime'])
     z_data = get_from_obj(data, [0, 'data', ('name','geometry'), 'components', 2, 'values'])
     [mx, my, mz] = get_from_obj(data, [0, 'nElementsLocal'])
