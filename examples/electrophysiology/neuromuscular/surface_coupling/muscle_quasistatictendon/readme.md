@@ -29,77 +29,51 @@ cd muscle_tendon/build_release
 ./tendon_quasistatic.cpp ../settings_tendon.py
 ```
 
-## Discussion of results (EXPLICIT)
-
-Assume `n_elements_muscle1 = [2, 2, 20]` and `n_elements_tendon = [2, 2, 4]`
-
-- linear_quasistatic with `dt=0.01`:
-Not looking good. The corners (xmax, 0) and (0, ymax) are off. But maybe a absolute convergence of 1e-2 could still be satisfied. 
-
-- quasistatic with `dt=0.01`:
-**Works properly** :tada:
-Even the corner values match! The image below corresponds to t=10ms, when the muscle is contracted. The image shows the values provided by precice, that is, our boundary condition and the actual traction field in the tendon.
-
-![image info](./quasistatic_tendon_at_10.png)
-
-
-## Discussion of results (IMPLICIT)
-
-> **Warning**
-> Results are not looking good. Are we doing the iterations properly?
-> - When trying to do quasinewton: ERROR: The quasi-Newton update contains NaN values. This means that the quasi-Newton acceleration failed to converge. When writing your own adapter this could indicate that you give wrong information to preCICE, such as identical data in succeeding iterations. Or you do not properly save and reload checkpoints. If you give the correct data this could also mean that the coupled problem is too hard to solve.
-
-- **zero attempt**:
-implicit coupling with one iteration (for comparison to explicit coupling)
+## Use of acceleration schemes
+The following is considered:
 
 ```
-<max-iterations value="1" />
-<absolute-convergence-measure limit="1e-6" data="Displacement" mesh="TendonMeshLeft" strict="0"/>
-<absolute-convergence-measure limit="1e-2" data="Traction" mesh="MuscleMeshLeft" strict="0"/>
+ <max-iterations value="50" />
+      <absolute-convergence-measure limit="1e-8" data="Displacement" mesh="TendonMeshLeft" strict="1"/>
+      <absolute-convergence-measure limit="1e-8" data="Velocity" mesh="TendonMeshLeft" strict="1"/>
+      <absolute-convergence-measure limit="1e-4" data="Traction" mesh="MuscleMeshLeft" strict="1"/>
 ```
 
-Precice provides 0 values for the traction!
+> **Note**
+>  t=0.7 is the first timestep were the tendon writes non-zero values of displacement and velocities. If the initial displacement is 0s everywhere, we expect the velocity to be a factor of 10 larger than the displacement
+> 
+
+- **no acceleration**: Crashes at t=0.9
+- **constant acceleration**: 
+| relaxation |  crashes at t |
+|---|---|
+| 0.1  | 0.7  | 
+| 0.1 |  0.7 |  
 
 
-- **first attempt**: 
-We apply an absolute convergence criterium.
+- **aitken acceleration**: Error goes down and up.
 
-```
-<max-iterations value="10" />
-<absolute-convergence-measure limit="1e-6" data="Displacement" mesh="TendonMeshLeft" strict="1"/>
-<absolute-convergence-measure limit="1e-2" data="Traction" mesh="MuscleMeshLeft" strict="1"/>
-```
+|  initial relaxation |  crashes at t |
+|---|---|
+| 0.5  | 0.8  | 
+| 0.1 |  0.8 |  
 
-![image info](./implicit1_at_10.png)
+- **quasi-newton acceleration**:
 
-- **second attempt**:
-The motivation is to have an stricter criteria for convergence.
+|  initial relaxation |  preconditioner |  max-used.iterations | time-windows-reused | crashes at t | Note 
+|---|---|---|---| ---|
+| 0.1 | residual-sum | 8 | 20 | 0.8 | - |
 
-```
-<max-iterations value="50" />
-<relative-convergence-measure limit="1e-4" data="Displacement" mesh="TendonMeshLeft" strict="1"/>
-<relative-convergence-measure limit="1e-2" data="Traction" mesh="MuscleMeshLeft" strict="1"/>
-```
 
-Acceleration is necessary in this case. In particular I use
+1) The number of columns in the least squares system exceeded half the number of unknowns at the interface. The system will probably become bad or ill-conditioned and the quasi-Newton acceleration may not converge. Maybe the number of allowed columns ("max-used-iterations") should be limited -> since we have 9 values at the interface chance from 100 to 8. 
 
-```
-<acceleration:aitken>
-    <data name="Traction" mesh="MuscleMeshLeft"/>
-    <initial-relaxation value="0.1"/>
-</acceleration:aitken> 
-```
+## About the quasistatic solver
 
-I observed that using 
+- Add new folder with solver files `solid_mechanics/quasistatic_hyperelasticity`
+    - `quasistatic_hyperelasticity_solver.h` is identical to `dynamic_hyperelasticity_solver.h`: only the solver/class name changes
+    - `quasistatic_hyperelasticity_solver.tpp` is almost identical to `dynamic_hyperelasticity_solver.tpp`: in function `advanceTimeSpan(withOutputWritersEnabled)` we call function `solveQuasistaticProblem` instead of `solveDynamicProblem`
+- Write function `solveQuasistaticProblem` in file `solid_mechanics/hyperelasticity/01_material_computations_wrappers.tpp`
+    - add new function to file `solid_mechanics/hyperelasticity/01_material_computations_wrappers.tpp`
+    - the main idea is to use the results of the previous timesteps for the initial values of displacement, velocities and pressure.
+- Add precice adapter for quasistatic solver in `00_nested_solver.h` and `00_nested:solver.tpp`.
 
-```
-<acceleration:constant>
-    <relaxation value="0.5"/>
-</acceleration:constant>
-```
-
-leads to a worse performance that not using acceleration at all. 
-
-![image info](./implicit2_at_10.png)
-
-TODO: **try larger timestep `dt=0.1`**

@@ -66,3 +66,23 @@ getSlotConnectorData()
 {
   return nestedSolvers_.getSlotConnectorData();
 }
+
+template<int nStates, int nAlgebraics, typename DiffusionTimeSteppingScheme>
+void FastMonodomainSolverBase<nStates,nAlgebraics,DiffusionTimeSteppingScheme>::
+updateFiberState()
+{
+
+  LOG(INFO) << "update fiber state";
+  fiberData_.clear();
+  fiberData_ = fiberDataOld_;
+}
+
+template<int nStates, int nAlgebraics, typename DiffusionTimeSteppingScheme>
+void FastMonodomainSolverBase<nStates, nAlgebraics, DiffusionTimeSteppingScheme>::
+saveFiberState()
+{
+  
+  LOG(INFO) << "save fiber state";
+  fiberDataOld_.clear();
+  fiberDataOld_ = fiberData_;
+}
