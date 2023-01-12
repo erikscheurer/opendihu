@@ -186,31 +186,6 @@ for k in range(nz):
 
 variables.elasticity_dirichlet_bc[0] = [0.0, 0.0, 0.0, None,None,None] # displacement ux uy uz, velocity vx vy vz
 
-# Neumann BC: increasing traction
-
-# variables.force = 20.0
-# k = mz-1
-# variables.elasticity_neumann_bc = [{"element": k*mx*my + j*mx + i, "constantVector": [0,0,variables.force], "face": "2+"} for j in range(my) for i in range(mx)]
-
-# def update_neumann_bc(t):
-
-#   # set new Neumann boundary conditions
-#   factor = min(1, t/100)   # for t ∈ [0,100] from 0 to 1
-#   elasticity_neumann_bc = [{
-# 		"element": k*mx*my + j*mx + i, 
-# 		"constantVector": [0,0, variables.force*factor], 		# force pointing to bottom
-# 		"face": "2+",
-#     "isInReferenceConfiguration": True
-#   } for j in range(my) for i in range(mx)]
-
-#   config = {
-#     "inputMeshIsGlobal": True,
-#     "divideNeumannBoundaryConditionValuesByTotalArea": True,            # if the given Neumann boundary condition values under "neumannBoundaryConditions" are total forces instead of surface loads and therefore should be scaled by the surface area of all elements where Neumann BC are applied
-#     "neumannBoundaryConditions": elasticity_neumann_bc,
-#   }
-#   print("prescribed pulling force to bottom: {}".format(variables.force*factor))
-#   return config
-
 # meshes
 
 # add neuron meshes
@@ -276,27 +251,6 @@ config = {
       "dumpFilename":       "",   # "out/dump_"
       "dumpFormat":         "matlab",
     },
-    # "potentialFlowSolver": {# solver for the initial potential flow, that is needed to estimate fiber directions for the bidomain equation
-    #   "relativeTolerance":  variables.potential_flow_solver_reltol,
-    #   "absoluteTolerance":  1e-10,         # 1e-10 absolute tolerance of the residual
-    #   "maxIterations":      variables.potential_flow_solver_maxit,
-    #   "solverType":         variables.potential_flow_solver_type,
-    #   "preconditionerType": variables.potential_flow_preconditioner_type,
-    #   "dumpFilename":       "",
-    #   "dumpFormat":         "matlab",
-    #   "cycleType":          "cycleV",     # if the preconditionerType is "gamg", which cycle to use "cycleV" or "cycleW"
-    #   "gamgType":           "agg",        # if the preconditionerType is "gamg", the type of the amg solver
-    #   "nLevels":            25,           # if the preconditionerType is "gamg", the maximum number of levels
-    # },
-    # "muscularEMGSolver": {   # solver for the static Bidomain equation and the EMG
-    #   "relativeTolerance":  variables.emg_solver_reltol,
-    #   "absoluteTolerance":  variables.emg_solver_abstol,
-    #   "maxIterations":      variables.emg_solver_maxit,
-    #   "solverType":         variables.emg_solver_type,
-    #   "preconditionerType": variables.emg_preconditioner_type,
-    #   "dumpFilename":       "",
-    #   "dumpFormat":         "matlab",
-    # },
     "mechanicsSolver": {   # solver for the dynamic mechanics problem
       "relativeTolerance":   variables.linear_relative_tolerance,           # 1e-10 relative tolerance of the linear solver
       "absoluteTolerance":   variables.linear_absolute_tolerance,           # 1e-10 absolute tolerance of the residual of the linear solver
@@ -346,10 +300,10 @@ config = {
         "ranks": list(range(subdomain_coordinate_y*variables.n_subdomains_x + subdomain_coordinate_x, n_ranks, variables.n_subdomains_x*variables.n_subdomains_y)),
         "StrangSplitting": {
           # "numberTimeSteps": 1,
-          "timeStepWidth":          variables.dt_splitting_0D1D,  # 1e-1
+          "timeStepWidth":          1e-2,  # 1e-1
           "logTimeStepWidthAsKey":  "dt_splitting",
           "durationLogKey":         "duration_monodomain_muscle1",
-          "endTime":                1000,
+          "endTime":                10,
           "timeStepOutputInterval": 1,
           "connectedSlotsTerm1To2": [0],   # transfer slot 0 = state Vm from Term1 (CellML) to Term2 (Diffusion), for elasticity also transfer gamma
           "connectedSlotsTerm2To1": [0],   # transfer the same back, this avoids data copy
@@ -363,10 +317,11 @@ config = {
                 {
                   "ranks":                          list(range(variables.n_subdomains_z)),    # these rank nos are local nos to the outer instance of MultipleInstances, i.e. from 0 to number of ranks in z direction
                   "Heun" : {
-                    "timeStepWidth":                variables.dt_0D,                         # timestep width of 0D problem
+                    "timeStepWidth":                1e-2,                         # timestep width of 0D problem
+                    # "endTime":                      1,                         # 1.0, # end time of 0D problem
                     "logTimeStepWidthAsKey":        "dt_0D",                                 # key under which the time step width will be written to the log file
                     "durationLogKey":               "duration_0D_muscle1",                           # log key of duration for this solver
-                    "timeStepOutputInterval":       1e4,                                     # how often to print the current timestep
+                    "timeStepOutputInterval":       1,                                     # how often to print the current timestep
                     "initialValues":                [],                                      # no initial values are specified
                     "dirichletBoundaryConditions":  {},                                      # no Dirichlet boundary conditions are specified
                     "dirichletOutputFilename":      None,                                    # filename for a vtp file that contains the Dirichlet boundary condition nodes and their values, set to None to disable
@@ -389,12 +344,7 @@ config = {
                       "maximumNumberOfThreads":                 variables.maximum_number_of_threads,            # if optimizationType is "openmp", the maximum number of threads to use. Default value 0 means no restriction.
                       "useAoVSMemoryLayout":                    variables.use_aovs_memory_layout,               # if optimizationType is "vc", whether to use the Array-of-Vectorized-Struct (AoVS) memory layout instead of the Struct-of-Vectorized-Array (SoVA) memory layout. Setting to True is faster.
 
-                      # stimulation callbacks
-                      #"libraryFilename":                       "cellml_simd_lib.so",                           # compiled library
-                      #"setSpecificParametersFunction":         set_specific_parameters,                        # callback function that sets parameters like stimulation current
-                      #"setSpecificParametersCallInterval":     int(1./variables.stimulation_frequency/variables.dt_0D),         # set_specific_parameters should be called every 0.1, 5e-5 * 1e3 = 5e-2 = 0.05
                       "setSpecificStatesFunction":              None,                                             # callback function that sets states like Vm, activation can be implemented by using this method and directly setting Vm values, or by using setParameters/setSpecificParameters
-                      #"setSpecificStatesCallInterval":          2*int(1./variables.stimulation_frequency/variables.dt_0D),       # set_specific_states should be called variables.stimulation_frequency times per ms, the factor 2 is needed because every Heun step includes two calls to rhs
                       "setSpecificStatesCallInterval":          0,                                                               # 0 means disabled
                       "setSpecificStatesCallFrequency":         variables.get_specific_states_call_frequency(fiber_no, motor_unit_no),   # set_specific_states should be called variables.stimulation_frequency times per ms
                       "setSpecificStatesFrequencyJitter":       variables.get_specific_states_frequency_jitter(fiber_no, motor_unit_no), # random value to add or substract to setSpecificStatesCallFrequency every stimulation, this is to add random jitter to the frequency
@@ -410,8 +360,8 @@ config = {
                       "stimulationLogFilename":                 "out/" + variables.scenario_name + "/stimulation_muscle1.log",                          # a file that will contain the times of stimulations
                     },
                     "OutputWriter" : [
-                      {"format": "Paraview", "outputInterval": 1, "filename": "out/" + variables.scenario_name + "/muscle1_0D_states({},{})".format(fiber_in_subdomain_coordinate_x,fiber_in_subdomain_coordinate_y), "binary": True, "fixedFormat": False, "combineFiles": True}
-                    ] if variables.states_output else []
+                      # {"format": "Paraview", "outputInterval": 1, "filename": "out/" + variables.scenario_name + "/muscle1_0D_states({},{})".format(fiber_in_subdomain_coordinate_x,fiber_in_subdomain_coordinate_y), "binary": True, "fixedFormat": False, "combineFiles": True}
+                    ] 
                   },
 
                 } for fiber_in_subdomain_coordinate_y in range(n_fibers_in_subdomain_y(subdomain_coordinate_y)) \
@@ -431,12 +381,12 @@ config = {
                   "ranks":                         list(range(variables.n_subdomains_z)),    # these rank nos are local nos to the outer instance of MultipleInstances, i.e. from 0 to number of ranks in z direction
                   "ImplicitEuler": {
                     "initialValues":               [],                                      # initial values to be set in the solution vector prior to the first timestep
-                    #"numberTimeSteps":            1,
-                    "timeStepWidth":               variables.dt_1D,                         # timestep width for the diffusion problem
+                    # "endTime":                     1,
+                    "timeStepWidth":               1e-2,                         # timestep width for the diffusion problem
                     "timeStepWidthRelativeTolerance": 1e-10,                                # tolerance for the time step width, when to rebuild the system matrix
                     "logTimeStepWidthAsKey":       "dt_1D",                                 # key under which the time step width will be written to the log file
                     "durationLogKey":              "duration_1D_muscle1",                           # log key of duration for this solver
-                    "timeStepOutputInterval":      1e4,                                     # how often to print the current timestep to console
+                    "timeStepOutputInterval":      1,                                     # how often to print the current timestep to console
                     "dirichletBoundaryConditions": {},                                      # old Dirichlet BC that are not used in FastMonodomainSolver: {0: -75.0036, -1: -75.0036},
                     "dirichletOutputFilename":     None,                                    # filename for a vtp file that contains the Dirichlet boundary condition nodes and their values, set to None to disable
                     "inputMeshIsGlobal":           True,                                    # initial values would be given as global numbers
@@ -452,6 +402,7 @@ config = {
                       "slotName":                  "",
                     },
                     "OutputWriter" : [
+                      # {"format": "PythonFile", "filename": "out/diffusion1d_implicit", "outputInterval": 1, "binary":False, "onlyNodalValues": True, "fileNumbering": "incremental"}
                     ]
                   },
                 } for fiber_in_subdomain_coordinate_y in range(n_fibers_in_subdomain_y(subdomain_coordinate_y)) \
@@ -459,7 +410,8 @@ config = {
                       for fiber_no in [get_fiber_no(subdomain_coordinate_x, subdomain_coordinate_y, fiber_in_subdomain_coordinate_x, fiber_in_subdomain_coordinate_y)] \
                         for motor_unit_no in [get_motor_unit_no(fiber_no)]
               ],
-              "OutputWriter" : variables.output_writer_fibers_muscle1,
+              "OutputWriter" : {"format": "Paraview", "outputInterval": 1, "filename": "out/" + variables.scenario_name + "/muscle1_fibers", "binary": True, "fixedFormat": False, "onlyNodalValues":True, "combineFiles": True, "fileNumbering": "incremental"},
+
             },
           },
         }
@@ -469,14 +421,14 @@ config = {
     ],#
     "OutputWriter" : [{"format": "Paraview", "outputInterval": 1, "filename": "out/" + subfolder + variables.scenario_name + "/muscle1_fibers", "binary": False, "fixedFormat": False, "combineFiles": True, "fileNumbering": "incremental"}],
 },
-  "fiberDistributionFile":    variables.fiber_distribution_file,   # for FastMonodomainSolver, e.g. MU_fibre_distribution_3780.txt
-  "firingTimesFile":          variables.firing_times_file,         # for FastMonodomainSolver, e.g. MU_firing_times_real.txt
-  "onlyComputeIfHasBeenStimulated": variables.fast_monodomain_solver_optimizations,                          # only compute fibers after they have been stimulated for the first time
-  "disableComputationWhenStatesAreCloseToEquilibrium": variables.fast_monodomain_solver_optimizations,       # optimization where states that are close to their equilibrium will not be computed again
-  "valueForStimulatedPoint":  variables.vm_value_stimulated,       # to which value of Vm the stimulated node should be set
-  "neuromuscularJunctionRelativeSize": 0.1,                        # range where the neuromuscular junction is located around the center, relative to fiber length. The actual position is draws randomly from the interval [0.5-s/2, 0.5+s/2) with s being this option. 0 means sharply at the center, 0.1 means located approximately at the center, but it can vary 10% in total between all fibers.
-  "generateGPUSource":        True,                                # (set to True) only effective if optimizationType=="gpu", whether the source code for the GPU should be generated. If False, an existing source code file (which has to have the correct name) is used and compiled, i.e. the code generator is bypassed. This is useful for debugging, such that you can adjust the source code yourself. (You can also add "-g -save-temps " to compilerFlags under CellMLAdapter)
-  "useSinglePrecision":       False,                               # only effective if optimizationType=="gpu", whether single precision computation should be used on the GPU. Some GPUs have poor double precision performance. Note, this drastically increases the error and, in consequence, the timestep widths should be reduced.
+  # "fiberDistributionFile":    variables.fiber_distribution_file,   # for FastMonodomainSolver, e.g. MU_fibre_distribution_3780.txt
+  # "firingTimesFile":          variables.firing_times_file,         # for FastMonodomainSolver, e.g. MU_firing_times_real.txt
+  # "onlyComputeIfHasBeenStimulated": variables.fast_monodomain_solver_optimizations,                          # only compute fibers after they have been stimulated for the first time
+  # "disableComputationWhenStatesAreCloseToEquilibrium": variables.fast_monodomain_solver_optimizations,       # optimization where states that are close to their equilibrium will not be computed again
+  # "valueForStimulatedPoint":  variables.vm_value_stimulated,       # to which value of Vm the stimulated node should be set
+  # "neuromuscularJunctionRelativeSize": 0.1,                        # range where the neuromuscular junction is located around the center, relative to fiber length. The actual position is draws randomly from the interval [0.5-s/2, 0.5+s/2) with s being this option. 0 means sharply at the center, 0.1 means located approximately at the center, but it can vary 10% in total between all fibers.
+  # "generateGPUSource":        True,                                # (set to True) only effective if optimizationType=="gpu", whether the source code for the GPU should be generated. If False, an existing source code file (which has to have the correct name) is used and compiled, i.e. the code generator is bypassed. This is useful for debugging, such that you can adjust the source code yourself. (You can also add "-g -save-temps " to compilerFlags under CellMLAdapter)
+  # "useSinglePrecision":       False,                               # only effective if optimizationType=="gpu", whether single precision computation should be used on the GPU. Some GPUs have poor double precision performance. Note, this drastically increases the error and, in consequence, the timestep widths should be reduced.
       #"preCompileCommand":        "bash -c 'module load argon-tesla/gcc/11-20210110-openmp; module list; gcc --version",     # only effective if optimizationType=="gpu", system command to be executed right before the compilation
       #"postCompileCommand":       "'",   # only effective if optimizationType=="gpu", system command to be executed right after the compilation
       #   

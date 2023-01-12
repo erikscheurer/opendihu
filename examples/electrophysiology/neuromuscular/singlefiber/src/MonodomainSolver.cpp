@@ -42,7 +42,7 @@ int main(int argc, char *argv[])
   // Hierarchical coupling to use small time steps for spindles, golgi,
   // motoneurons, monodomain, and bidomain coupled to the contraction solver
   // with large time steps
-    FastMonodomainSolver<                               // a wrapper that improves performance of multidomain
+    // FastMonodomainSolver<                               // a wrapper that improves performance of multidomain
       Control::MultipleInstances<                       // fibers
 
       OperatorSplitting::Strang<
@@ -68,7 +68,7 @@ int main(int argc, char *argv[])
           >
         >
       >
-    >
+    // >
   > problem(settings);
   
   problem.run();
