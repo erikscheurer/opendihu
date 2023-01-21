@@ -84,25 +84,25 @@ if variables.paraview_output:
   if variables.adios_output:
     subfolder = "paraview/"
   variables.output_writer_fibers_muscle1.append({"format": "Paraview", "outputInterval": int(1./variables.dt_splitting_0D1D*variables.output_timestep_fibers), "filename": "out/" + subfolder + variables.scenario_name + "/muscle1_fibers", "binary": False, "fixedFormat": False, "combineFiles": True, "fileNumbering": "incremental"})
-  variables.output_writer_emg_muscle1.append({"format": "Paraview", "outputInterval": int(1./variables.dt_bidomain*variables.output_timestep_emg), "filename": "out/" + subfolder + variables.scenario_name + "/muscle1_emg", "binary": True, "fixedFormat": False, "combineFiles": True, "fileNumbering": "incremental"})
+  # variables.output_writer_emg_muscle1.append({"format": "Paraview", "outputInterval": int(1./variables.dt_bidomain*variables.output_timestep_emg), "filename": "out/" + subfolder + variables.scenario_name + "/muscle1_emg", "binary": True, "fixedFormat": False, "combineFiles": True, "fileNumbering": "incremental"})
   
 if variables.adios_output:
   if variables.paraview_output:
     subfolder = "adios/"
   variables.output_writer_fibers_muscle1.append({"format": "MegaMol", "outputInterval": int(1./variables.dt_splitting_0D1D*variables.output_timestep_fibers), "filename": "out/" + subfolder + variables.scenario_name + "/muscle1_fibers", "useFrontBackBuffer": False, "combineNInstances": 1, "fileNumbering": "incremental"})
-  variables.output_writer_emg_muscle1.append({"format": "MegaMol", "outputInterval": int(1./variables.dt_bidomain*variables.output_timestep_emg), "filename": "out/" + subfolder + variables.scenario_name + "/muscle1_emg", "useFrontBackBuffer": False, "combineNInstances": 1, "fileNumbering": "incremental"})
+  # variables.output_writer_emg_muscle1.append({"format": "MegaMol", "outputInterval": int(1./variables.dt_bidomain*variables.output_timestep_emg), "filename": "out/" + subfolder + variables.scenario_name + "/muscle1_emg", "useFrontBackBuffer": False, "combineNInstances": 1, "fileNumbering": "incremental"})
   
 if variables.python_output:
   if variables.adios_output:
     subfolder = "python/"
   variables.output_writer_fibers_muscle1.append({"format": "PythonFile", "outputInterval": int(1./variables.dt_splitting_0D1D*variables.output_timestep_fibers), "filename": "out/" + subfolder + variables.scenario_name + "/muscle1_fibers", "binary": True, "fileNumbering": "incremental"})
-  variables.output_writer_emg_muscle1.append({"format": "PythonFile", "outputInterval": int(1./variables.dt_bidomain*variables.output_timestep_emg), "filename": "out/" + subfolder + variables.scenario_name + "/muscle1_emg", "binary": True, "fileNumbering": "incremental"})
+  # variables.output_writer_emg_muscle1.append({"format": "PythonFile", "outputInterval": int(1./variables.dt_bidomain*variables.output_timestep_emg), "filename": "out/" + subfolder + variables.scenario_name + "/muscle1_emg", "binary": True, "fileNumbering": "incremental"})
   
-if variables.exfile_output:
-  if variables.adios_output:
-    subfolder = "exfile/"
-  variables.output_writer_fibers_muscle1.append({"format": "Exfile", "outputInterval": int(1./variables.dt_splitting_0D1D*variables.output_timestep_fibers), "filename": "out/" + subfolder + variables.scenario_name + "/muscle1_fibers", "fileNumbering": "incremental"})
-  variables.output_writer_emg_muscle1.append({"format": "Exfile", "outputInterval": int(1./variables.dt_bidomain*variables.output_timestep_emg), "filename": "out/" + subfolder + variables.scenario_name + "/muscle1_emg", "fileNumbering": "incremental"})
+# if variables.exfile_output:
+#   if variables.adios_output:
+#     subfolder = "exfile/"
+#   variables.output_writer_fibers_muscle1.append({"format": "Exfile", "outputInterval": int(1./variables.dt_splitting_0D1D*variables.output_timestep_fibers), "filename": "out/" + subfolder + variables.scenario_name + "/muscle1_fibers", "fileNumbering": "incremental"})
+#   variables.output_writer_emg_muscle1.append({"format": "Exfile", "outputInterval": int(1./variables.dt_bidomain*variables.output_timestep_emg), "filename": "out/" + subfolder + variables.scenario_name + "/muscle1_emg", "fileNumbering": "incremental"})
   
 
 
@@ -228,19 +228,19 @@ def compartment_gets_stimulated(compartment_no, frequency, current_time):
 
 
 # determine MU sizes and create n_fibers_in_motor_unit array
-variables.n_fibers_in_motor_unit = [0 for _ in range(variables.n_motor_units)]
-variables.fiber_index_in_motor_unit = [[] for _ in range(variables.n_motor_units)]
+# variables.n_fibers_in_motor_unit = [0 for _ in range(variables.n_motor_units)]
+# variables.fiber_index_in_motor_unit = [[] for _ in range(variables.n_motor_units)]
 
-for fiber_no in range(variables.n_fibers_total):
-  mu_no = get_motor_unit_no(fiber_no)
-  variables.n_fibers_in_motor_unit[mu_no] += 1
-  variables.fiber_index_in_motor_unit[mu_no].append(fiber_no)
+# for fiber_no in range(variables.n_fibers_total):
+#   mu_no = get_motor_unit_no(fiber_no)
+  # variables.n_fibers_in_motor_unit[mu_no] += 1
+  # variables.fiber_index_in_motor_unit[mu_no].append(fiber_no)
 
-def get_fiber_index_in_motor_unit(fiber_index, motor_unit_no):
-  return variables.fiber_index_in_motor_unit[motor_unit_no][fiber_index]
+# def get_fiber_index_in_motor_unit(fiber_index, motor_unit_no):
+#   return variables.fiber_index_in_motor_unit[motor_unit_no][fiber_index]
   
-def get_n_fibers_in_motor_unit(motor_unit_no):
-  return variables.n_fibers_in_motor_unit[motor_unit_no]
+# def get_n_fibers_in_motor_unit(motor_unit_no):
+#   return variables.n_fibers_in_motor_unit[motor_unit_no]
 
 
 
