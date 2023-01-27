@@ -143,6 +143,7 @@ public:
     bool currentlyStimulating;                    //< if a stimulation is in progress at the current time
   };
 
+
 protected:
 
   //! load the firing times file and initialize the firingEvents_ and motorUnitNo_ variables
@@ -241,14 +242,11 @@ protected:
   int nFiberPointBufferStatesCloseToEquilibrium_;                           //< number of "inactive" entries in fiberPointBuffersStatesAreCloseToEquilibrium_
   bool setComputeStateInformation_;                                         //< whether the information in fiberPointBuffersStatesAreCloseToEquilibrium_ should be added to the algebraics to transfer in a variable named "computeStateInformation"
 
-  std::vector<int> statesForTransferIndices_;          //< state no.s to transfer to other solvers within slot connector data
-  std::vector<int> algebraicsForTransferIndices_;      //< which algebraics should be transferred to other solvers as part of slot connector data
   double valueForStimulatedPoint_;              //< value to which the first state will be set if stimulated
   double neuromuscularJunctionRelativeSize_;    //< relative size of the range where the neuromuscular junction is located
 
   std::vector<std::vector<Vc::double_v>> fiberPointBuffersParameters_;        //< constant parameter values, changing parameters is not implemented
   std::vector<std::vector<Vc::double_v>> fiberPointBuffersAlgebraicsForTransfer_;   //<  [fiberPointNo][algebraicToTransferNo], algebraic values to use for slot connector data
-
 
   std::vector<float> gpuParameters_;              //< for "gpu": constant parameter values, in struct of array memory layout: gpuParameters_[parameterNo*nInstances + instanceNo]
   std::vector<double> gpuAlgebraicsForTransfer_;   //< for "gpu": algebraic values to use for slot connector data, in struct of array memory layout: gpuAlgebraicsForTransfer_[algebraicNo*nInstances + instanceNo]

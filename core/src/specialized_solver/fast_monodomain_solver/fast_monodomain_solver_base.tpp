@@ -69,4 +69,3 @@ getSlotConnectorData()
 {
   return nestedSolvers_.getSlotConnectorData();
 }
-
