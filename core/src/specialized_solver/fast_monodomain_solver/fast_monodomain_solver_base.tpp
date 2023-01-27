@@ -9,13 +9,16 @@ void FastMonodomainSolverBase<nStates,nAlgebraics,DiffusionTimeSteppingScheme>::
 callOutputWriter(int timeStepNo, double currentTime, int callCountIncrement)
 {
   // call output writer of diffusion
+  LOG(DEBUG)<<"callOutputWriter with timeStepNo, currentTime = " << timeStepNo << " " << currentTime;
+
   std::vector<typename NestedSolversType::TimeSteppingSchemeType> &instances = nestedSolvers_.instancesLocal();
 
   for (int i = 0; i < instances.size(); i++)
   {
     // call write output of MultipleInstances, callCountIncrement is the number of times the output writer would have been called without FastMonodomainSolver
-    instances[i].timeStepping2().writeOwnOutput(0, currentTime_, nTimeStepsSplitting_);
+    instances[i].timeStepping2().writeOwnOutput(timeStepNo, currentTime_, nTimeStepsSplitting_);
   }
+  
 }
 
 template<int nStates, int nAlgebraics, typename DiffusionTimeSteppingScheme>
@@ -67,22 +70,3 @@ getSlotConnectorData()
   return nestedSolvers_.getSlotConnectorData();
 }
 
-template<int nStates, int nAlgebraics, typename DiffusionTimeSteppingScheme>
-void FastMonodomainSolverBase<nStates,nAlgebraics,DiffusionTimeSteppingScheme>::
-updateFiberState()
-{
-
-  LOG(INFO) << "update fiber state";
-  fiberData_.clear();
-  fiberData_ = fiberDataOld_;
-}
-
-template<int nStates, int nAlgebraics, typename DiffusionTimeSteppingScheme>
-void FastMonodomainSolverBase<nStates, nAlgebraics, DiffusionTimeSteppingScheme>::
-saveFiberState()
-{
-  
-  LOG(INFO) << "save fiber state";
-  fiberDataOld_.clear();
-  fiberDataOld_ = fiberData_;
-}

@@ -143,12 +143,6 @@ public:
     bool currentlyStimulating;                    //< if a stimulation is in progress at the current time
   };
 
-  void updateFiberState();
-
-  void saveFiberState();
-
-
-
 protected:
 
   //! load the firing times file and initialize the firingEvents_ and motorUnitNo_ variables
@@ -184,7 +178,7 @@ protected:
   void compute1D(double startTime, double timeStepWidth, int nTimeSteps, double prefactor);
 
   //! compute the 0D-1D problem with Strang splitting
-  void computeMonodomain();
+  void computeMonodomain(bool withOutputWritersEnabled);
 
   //! check if the current point will be stimulated now
   bool isCurrentPointStimulated(int fiberDataNo, double currentTime, bool currentPointIsInCenter);
@@ -225,7 +219,7 @@ protected:
   std::string durationLogKey1D_;                  //< duration log key for the 1D problem
 
   OutputWriter::Manager outputWriterManager_;     //< manager object holding all output writers
-  std::vector<FiberData> fiberDataOld_;
+
   std::vector<FiberData> fiberData_;  //< vector of fibers, the number of entries is the number of fibers to be computed by the own rank (nFibersToCompute_)
   int nFibersToCompute_;              //< number of fibers where own rank is involved (>= n.fibers that are computed by own rank)
   int nInstancesToCompute_;           //< number of instances of the Hodgkin-Huxley (or other CellML) problem to compute on this rank
@@ -243,7 +237,7 @@ protected:
     neighbor_is_active,           //< the state values did not change, so the state is inactive, but at a neighbouring point the value changed. This means the own value has to be computed because it can change due to diffusion.
     active                      //< the state values at the own point change and have to be computed
   };                                                                        //< type for fiberPointBuffersStatesAreCloseToEquilibrium_
-  std::vector<state_t> fiberPointBuffersStatesAreCloseToEquilibrium_;       //< for every entry in fiberPointBuffers_, inactive if the states didn't change too much in the last compute0D, neighbor_is_active if the state of the neighbouring pointBuffer changes
+  std::vector<state_t> fiberPointBuffersStatesAreCloseToEquilibrium_;
   int nFiberPointBufferStatesCloseToEquilibrium_;                           //< number of "inactive" entries in fiberPointBuffersStatesAreCloseToEquilibrium_
   bool setComputeStateInformation_;                                         //< whether the information in fiberPointBuffersStatesAreCloseToEquilibrium_ should be added to the algebraics to transfer in a variable named "computeStateInformation"
 
@@ -254,6 +248,7 @@ protected:
 
   std::vector<std::vector<Vc::double_v>> fiberPointBuffersParameters_;        //< constant parameter values, changing parameters is not implemented
   std::vector<std::vector<Vc::double_v>> fiberPointBuffersAlgebraicsForTransfer_;   //<  [fiberPointNo][algebraicToTransferNo], algebraic values to use for slot connector data
+
 
   std::vector<float> gpuParameters_;              //< for "gpu": constant parameter values, in struct of array memory layout: gpuParameters_[parameterNo*nInstances + instanceNo]
   std::vector<double> gpuAlgebraicsForTransfer_;   //< for "gpu": algebraic values to use for slot connector data, in struct of array memory layout: gpuAlgebraicsForTransfer_[algebraicNo*nInstances + instanceNo]
@@ -274,6 +269,7 @@ protected:
   std::vector<double> gpuCurrentJitter_;                         //< current absolute value of jitter to add to setSpecificStatesCallFrequency
   std::vector<int> gpuJitterIndex_;                              //< index of the vector in setSpecificStatesFrequencyJitter which is the current value to use
   std::vector<double> gpuVmValues_;                      //< for "gpu": values of the first state, gpuVmValues_[instanceToComputeNo]
+  
   bool generateGpuSource_;                               //< if the GPU source code should be generated, if not it reuses the existing file, this is for debugging
 
   void (*compute0DInstance_)(Vc::double_v [], std::vector<Vc::double_v> &, double, double, bool, bool, std::vector<Vc::double_v> &, const std::vector<int> &, double);   //< runtime-created and loaded function to compute one Heun step of the 0D problem
